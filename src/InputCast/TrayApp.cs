@@ -204,13 +204,19 @@ internal sealed class TrayApp : ApplicationContext
         var pos = new ToolStripMenuItem("Key bubble position");
         foreach (BubblePosition p in Enum.GetValues<BubblePosition>())
         {
+            if (p == BubblePosition.Custom) continue;
             var item = new ToolStripMenuItem(SplitWords(p.ToString())) { Tag = p };
             item.Click += (_, _) => { _settings.BubblePosition = p; SaveAndApply(); };
             pos.DropDownItems.Add(item);
         }
+        pos.DropDownItems.Add(new ToolStripSeparator());
+        var customPos = new ToolStripMenuItem("Custom – drag to place…") { Tag = BubblePosition.Custom };
+        customPos.Click += (_, _) => PlaceBubble();
+        pos.DropDownItems.Add(customPos);
         pos.DropDownOpening += (_, _) =>
         {
-            foreach (ToolStripMenuItem i in pos.DropDownItems) i.Checked = (BubblePosition)i.Tag! == _settings.BubblePosition;
+            foreach (ToolStripMenuItem i in pos.DropDownItems.OfType<ToolStripMenuItem>())
+                i.Checked = i.Tag is BubblePosition bp && bp == _settings.BubblePosition;
         };
         menu.Items.Add(pos);
         menu.Items.Add(new ToolStripSeparator());
@@ -264,6 +270,34 @@ internal sealed class TrayApp : ApplicationContext
         _bubble.Clear();
         _lastState = "";
         Evaluate();
+    }
+
+    /// <summary>Lets the user drag a ghost of the key bubble to a fixed spot and remembers it as the Custom position.</summary>
+    private void PlaceBubble()
+    {
+        float scale = Native.ScaleAt(Native.CursorPos());
+        Point start;
+        if (_settings.BubblePosition == BubblePosition.Custom)
+        {
+            start = new Point(_settings.CustomX, _settings.CustomY);
+        }
+        else
+        {
+            Rectangle wa = Native.WorkAreaAt(Native.CursorPos());
+            start = new Point(wa.Left + wa.Width / 2 - (int)(110 * scale), wa.Top + wa.Height / 2 - (int)(42 * scale));
+        }
+
+        using var placer = new BubblePlacer(start, scale);
+        if (placer.ShowDialog() != DialogResult.OK) return;
+
+        _settings.CustomX = placer.Location.X;
+        _settings.CustomY = placer.Location.Y;
+        _settings.BubblePosition = BubblePosition.Custom;
+        SaveAndApply();
+
+        // Flash a sample so the user sees where it landed, even if nothing is being recorded yet.
+        _bubble.ShowSample(Now);
+        UpdateFrameTimer();
     }
 
     private void RegisterPauseHotkey()

@@ -19,6 +19,8 @@ public enum BubblePosition
     BottomLeft,
     BottomRight,
     TopCenter,
+    /// <summary>A fixed point on screen chosen with "Custom – drag to place…" (CustomX / CustomY).</summary>
+    Custom,
 }
 
 public sealed class Settings
@@ -48,6 +50,10 @@ public sealed class Settings
 
     // Key bubble look
     public BubblePosition BubblePosition { get; set; } = BubblePosition.BottomCenter;
+    /// <summary>Screen X of the key bubble's top-left corner when <see cref="BubblePosition"/> is <see cref="BubblePosition.Custom"/>. Set with "Custom – drag to place…".</summary>
+    public int CustomX { get; set; } = 100;
+    /// <summary>Screen Y of the key bubble's top-left corner for the Custom position.</summary>
+    public int CustomY { get; set; } = 100;
     public float FontSize { get; set; } = 18f;
     public int BubbleMargin { get; set; } = 40;
     public int MaxLines { get; set; } = 3;

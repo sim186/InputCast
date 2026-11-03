@@ -45,6 +45,9 @@ internal sealed class KeyBubble : IDisposable
     public void IgnoreCombination(IEnumerable<string>? chips) =>
         _ignoredSignature = chips == null ? null : string.Join("+", chips);
 
+    /// <summary>Shows a one-off sample line so a freshly placed bubble is immediately visible.</summary>
+    public void ShowSample(long nowMs) => AddChips(["Ctrl", "Shift", "S"], nowMs);
+
     public void OnInput(InputEvent e, long nowMs)
     {
         var s = _settings();
@@ -235,9 +238,12 @@ internal sealed class KeyBubble : IDisposable
 
     private void Render(Settings s, long nowMs)
     {
-        Rectangle? region = s.FollowRecordingRegion ? _recordingRegion() : null;
-        Rectangle anchor = region ?? Native.WorkAreaAt(_cursor());
-        float scale = Native.ScaleAt(new Point(anchor.Left + anchor.Width / 2, anchor.Top + anchor.Height / 2));
+        bool custom = s.BubblePosition == BubblePosition.Custom;
+        Point customAnchor = new(s.CustomX, s.CustomY);
+        Rectangle? region = (!custom && s.FollowRecordingRegion) ? _recordingRegion() : null;
+        Rectangle anchor = region ?? Native.WorkAreaAt(custom ? customAnchor : _cursor());
+        float scale = Native.ScaleAt(custom ? customAnchor
+            : new Point(anchor.Left + anchor.Width / 2, anchor.Top + anchor.Height / 2));
 
         Color bg = Settings.ParseColor(s.BubbleBackground, Color.FromArgb(224, 24, 24, 24));
         Color fg = Settings.ParseColor(s.BubbleForeground, Color.White);
@@ -296,7 +302,7 @@ internal sealed class KeyBubble : IDisposable
 
                 float x = s.BubblePosition switch
                 {
-                    BubblePosition.BottomLeft => 1,
+                    BubblePosition.BottomLeft or BubblePosition.Custom => 1,
                     BubblePosition.BottomRight => width - 1 - w,
                     _ => (width - w) / 2f,
                 };
@@ -347,19 +353,29 @@ internal sealed class KeyBubble : IDisposable
             }
         }
 
-        int margin = (int)(s.BubbleMargin * scale);
-        // Keep the bubble inside small recording regions.
-        margin = Math.Min(margin, Math.Max(0, (anchor.Height - height) / 2));
-
-        int left = s.BubblePosition switch
+        int left, top;
+        if (custom)
         {
-            BubblePosition.BottomLeft => anchor.Left + margin,
-            BubblePosition.BottomRight => anchor.Right - margin - width,
-            _ => anchor.Left + (anchor.Width - width) / 2,
-        };
-        int top = s.BubblePosition == BubblePosition.TopCenter
-            ? anchor.Top + margin
-            : anchor.Bottom - margin - height;
+            Rectangle vs = SystemInformation.VirtualScreen;
+            left = Math.Clamp(s.CustomX, vs.Left, Math.Max(vs.Left, vs.Right - width));
+            top = Math.Clamp(s.CustomY, vs.Top, Math.Max(vs.Top, vs.Bottom - height));
+        }
+        else
+        {
+            int margin = (int)(s.BubbleMargin * scale);
+            // Keep the bubble inside small recording regions.
+            margin = Math.Min(margin, Math.Max(0, (anchor.Height - height) / 2));
+
+            left = s.BubblePosition switch
+            {
+                BubblePosition.BottomLeft => anchor.Left + margin,
+                BubblePosition.BottomRight => anchor.Right - margin - width,
+                _ => anchor.Left + (anchor.Width - width) / 2,
+            };
+            top = s.BubblePosition == BubblePosition.TopCenter
+                ? anchor.Top + margin
+                : anchor.Bottom - margin - height;
+        }
 
         _window.Present(bmp, new Point(left, top));
     }

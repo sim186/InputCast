@@ -7,6 +7,9 @@ companion tray app that fills the gap: it draws click indicators and a key bubbl
 click-through, always-on-top windows, so ShareX records them like anything else on screen. In the default
 **Auto** mode, InputCast detects ShareX's recording and only shows input while a recording is running.
 
+> **Windows only.** InputCast relies on Windows low-level input hooks and layered windows, so it runs on
+> Windows 10/11 only — same as ShareX itself.
+
 ![Key bubble](docs/key-bubble.png)
 
 | Button held | Released (ripple) |
@@ -22,6 +25,9 @@ click-through, always-on-top windows, so ShareX records them like anything else 
 - **Your keyboard layout**: punctuation and AltGr characters come from the active layout (e.g. Italian `ò`, `@`).
 - **Auto mode for ShareX**: turns on only while ShareX is recording and places the bubble *inside the
   recorded region*, so it is never cut off.
+- **Place it anywhere**: four presets (bottom center / left / right, top center) or a **custom position** you
+  set by dragging a ghost of the bubble where you want it. Combined with **Always on**, this makes InputCast
+  usable with any recorder (OBS, Xbox Game Bar, Teams, Camtasia, …), not just ShareX.
 - **Pause hotkey** (`Ctrl+Alt+Shift+K` by default) to hide everything, e.g. while typing a password.
 - Per-monitor DPI aware and multi-monitor aware.
 - **Privacy**: input is only shown on screen, never logged or sent anywhere. Outside of a recording (in Auto
@@ -36,6 +42,14 @@ click-through, always-on-top windows, so ShareX records them like anything else 
 
 Then record with ShareX as usual.
 
+> **Heads-up on antivirus / SmartScreen.** The released `.exe` is **unsigned** — the GitHub build is produced
+> from source with no code-signing certificate. It is also a self-contained single-file app that installs
+> global keyboard and mouse hooks to read input, which is exactly the behaviour heuristic antivirus engines
+> treat as suspicious. So Windows SmartScreen or your antivirus may warn on first run, or even quarantine the
+> file. It is open-source and safe — you can review the code or [build it yourself](#build). To run the
+> download, choose *More info → Run anyway* on the SmartScreen prompt; if your antivirus removes it, restore
+> it and add an exclusion.
+
 ### Tray icon
 
 | Dot | Meaning |
@@ -49,7 +63,8 @@ Left-click the icon to pause or resume. Right-click it for the options:
 - **Activation**: *Auto* (only while ShareX records), *Always on*, or *Off*. Use *Always on* for other
   recorders (OBS, Xbox Game Bar, Teams, ...).
 - Show mouse clicks / keys / typed text / scroll wheel. Turn off *typed text* for shortcuts only.
-- Key bubble position: bottom center, bottom left, bottom right, or top center.
+- Key bubble position: bottom center / left / right, top center, or **Custom – drag to place…** (drag the
+  ghost bubble anywhere, then click to lock it in; Esc cancels).
 - **Show demo** plays a short sample of every effect.
 
 ## Settings
@@ -66,7 +81,8 @@ Everything is in `%APPDATA%\InputCast\settings.json` (tray menu: *Edit settings 
 | `ClickRadius` | `26` | in DIPs (scaled per monitor) |
 | `RippleDurationMs` | `450` | |
 | `LeftColor`, `RightColor`, `MiddleColor`, `XButtonColor` | amber, red, blue, purple | `#RRGGBB` or `#AARRGGBB` |
-| `BubblePosition` | `BottomCenter` | `BottomCenter`, `BottomLeft`, `BottomRight`, `TopCenter` |
+| `BubblePosition` | `BottomCenter` | `BottomCenter`, `BottomLeft`, `BottomRight`, `TopCenter`, `Custom` |
+| `CustomX`, `CustomY` | `100` | top-left of the bubble in screen pixels when `BubblePosition` is `Custom`; set via *Custom – drag to place…* |
 | `FontSize` | `18` | points |
 | `MaxLines` | `3` | lines kept in the bubble |
 | `LingerMs` / `FadeMs` | `2000` / `350` | how long a line stays and how long it fades |

@@ -11,9 +11,9 @@
     <ApplicationVisualStyles>true</ApplicationVisualStyles>
     <RootNamespace>InputCast</RootNamespace>
     <AssemblyName>InputCast</AssemblyName>
-    <Version>1.0.0</Version>
-    <FileVersion>1.0.0.0</FileVersion>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>0.0.1</Version>
+    <FileVersion>0.0.1.0</FileVersion>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
     <Product>InputCast</Product>
     <Description>Shows mouse clicks and keystrokes on screen so they appear in screen recordings (ShareX and others).</Description>
     <InvariantGlobalization>true</InvariantGlobalization>
